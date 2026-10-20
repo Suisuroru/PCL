@@ -52,9 +52,17 @@ jobs:
 
     - name: Replace
       run: |
-        (gc "Plain Craft Launcher 2\Modules\ModSecret.vb") -replace 'Public OAuthClientId As String = If(Environment.GetEnvironmentVariable("PCL_MS_CLIENT_ID"), "")', 'Public OAuthClientId As String = "${{ secrets.CLIENT_ID }}"' | Out-File "Plain Craft Launcher 2\Modules\ModSecret.vb"
-        (gc "Plain Craft Launcher 2\Modules\ModSecret.vb") -replace 'Public CurseForgeAPIKey As String = If(Environment.GetEnvironmentVariable("PCL_CURSEFORGE_API_KEY"), "")', 'Public CurseForgeAPIKey As String = "${{ secrets.CURSEFORGE_API_KEY }}"' | Out-File "Plain Craft Launcher 2\Modules\ModSecret.vb"
-        (gc "Plain Craft Launcher 2\Modules\Base\ModBase.vb") -replace 'Public Const CommitHash As String = ""', 'Public Const CommitHash As String = "${{ github.sha }}"' | Out-File "Plain Craft Launcher 2\Modules\Base\ModBase.vb"
+        $secret = "Plain Craft Launcher 2\Modules\ModSecret.vb"
+        $base = "Plain Craft Launcher 2\Modules\Base\ModBase.vb"
+
+        $c = Get-Content $secret -Raw
+        $c = $c.Replace('Public OAuthClientId As String = If(Environment.GetEnvironmentVariable("PCL_MS_CLIENT_ID"), "")', 'Public OAuthClientId As String = "${{ secrets.CLIENT_ID }}"')
+        $c = $c.Replace('Public CurseForgeAPIKey As String = If(Environment.GetEnvironmentVariable("PCL_CURSEFORGE_API_KEY"), "")', 'Public CurseForgeAPIKey As String = "${{ secrets.CURSEFORGE_API_KEY }}"')
+        Set-Content -Path $secret -Value $c -NoNewline -Encoding utf8
+
+        $b = Get-Content $base -Raw
+        $b = $b.Replace('Public Const CommitHash As String = ""', 'Public Const CommitHash As String = "${{ github.sha }}"')
+        Set-Content -Path $base -Value $b -NoNewline -Encoding utf8
         
     - name: Restore NuGet Packages
       run: dotnet restore PCLCS\PCLCS.csproj
